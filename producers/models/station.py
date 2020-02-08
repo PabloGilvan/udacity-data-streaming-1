@@ -15,9 +15,6 @@ class Station(Producer):
 
     key_schema = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_key.json")
 
-    #
-    # TODO: Define this value schema in `schemas/station_value.json, then uncomment the below
-    #
     value_schema = avro.load(f"{Path(__file__).parents[0]}/schemas/arrival_value.json")
 
     def __init__(self, station_id, name, color, direction_a=None, direction_b=None):
@@ -30,8 +27,7 @@ class Station(Producer):
                 .replace("'", "")
         )
 
-        normalized_topic_name = station_name.translate({ord(c): "_" for c in "!@#$%^&*()[]{};:,.<>=+"})
-        topic_name = f"chicago.station.{normalized_topic_name}"
+        topic_name = f"chicago.station.{station_name}"
         super().__init__(
             topic_name,
             key_schema=Station.key_schema,
@@ -63,7 +59,8 @@ class Station(Producer):
             value={
                 "station_id": self.station_id,
                 "train_id": train.train_id,
-                "train_status": True if train.status else False,
+                "train_status": train.status.name,
+                "line": self.color.name,
                 "direction": direction,
                 "prev_station_id": prev_station_id,
                 "prev_direction": prev_direction
